@@ -8,18 +8,18 @@ import (
 )
 
 type Block struct{
-    Index int `json:"index"` 
-    Data []byte `json:"data"` 
+    Index int       `json:"index"` 
+    Transactions []Transaction  `json:"transactions"` 
     PrevHash []byte `json:"prevHash"` 
-    Hash []byte `json:"-"` 
-    Nonce uint64 `json:"nonce"`
+    Hash []byte     `json:"-"` 
+    Nonce uint64    `json:"nonce"`
 }
 
 type BlockForHash struct {
-    Index    int    `json:"index"`
-    Data     []byte `json:"data"`
-    PrevHash []byte `json:"prevHash"`
-    Nonce    uint64 `json:"nonce"`
+    Index    int                `json:"index"`
+    Transactions []Transaction  `json:"transactions"` 
+    PrevHash []byte             `json:"prevHash"`
+    Nonce    uint64             `json:"nonce"`
 }
 
 type BlockChain struct{
@@ -27,9 +27,20 @@ type BlockChain struct{
     Difficulty int
 }
 
+type Transaction struct{
+    From Account    `json:"from"` 
+    To Account      `json:"to"` 
+    Amount float32  `json:"amount"` 
+}
+
+type Account struct{
+    Id uint32   `json:"id"` 
+    Name string `json:"name"` 
+}
+
 func GenerateGenesisBlock(b *Block, difficulty int){
     b.Index=0
-    b.Data = []byte("Genesis")
+    b.Transactions= nil
     b.PrevHash=nil
     b.MineBlock(difficulty)
 } 
@@ -38,7 +49,7 @@ func InitBlockChain() *BlockChain{
 
     bc := &BlockChain{
         Chain: make([]Block, 0), 
-        Difficulty: 3,
+        Difficulty: 1,
     }
     var genesisBlock Block
     GenerateGenesisBlock(&genesisBlock,bc.Difficulty)
@@ -51,7 +62,7 @@ func InitBlockChain() *BlockChain{
 func (b *Block)CalculateHash() error {
     hb := &BlockForHash{
         Index: b.Index,
-        Data: b.Data,
+        Transactions: b.Transactions,
         PrevHash: b.PrevHash,
         Nonce: b.Nonce,
     }
@@ -84,10 +95,10 @@ func CheckHash(hash []byte,difficulty int) bool {
     return true
 }
 
-func (bc *BlockChain)AddBlockChain(data []byte) {
+func (bc *BlockChain)AddBlockToChain(transactions []Transaction) {
     block := Block{
         Index: len(bc.Chain),
-        Data: data,
+        Transactions: transactions,
     }
     if(len(bc.Chain)!=0){
         block.PrevHash = bc.Chain[block.Index-1].Hash
@@ -101,8 +112,11 @@ func (bc *BlockChain)AddBlockChain(data []byte) {
 
 func (bc *BlockChain)DebugBlockChain(){
     for _, v := range bc.Chain{
-        fmt.Printf("Index: %d\n",v.Index)
-        fmt.Printf("Data: %s\n", v.Data) 
+        fmt.Printf("Index Block: %d\n",v.Index)
+        for i,t := range v.Transactions{
+            fmt.Printf("Transaction[%d]: \n",i)
+            fmt.Printf("Amount: %f\tFrom %d\tTo %d\n",t.Amount,t.From.Id,t.To.Id)
+        }
         fmt.Printf("Hash: %x\n", v.Hash)
         fmt.Printf("PrevHash: %x\n", v.PrevHash)
         fmt.Printf("Nonce: %d\n", v.Nonce)
@@ -121,8 +135,40 @@ func (bc *BlockChain)ValidateBlockChain() bool{
 
 func main(){
     var bc *BlockChain = InitBlockChain() 
-    bc.AddBlockChain([]byte("Primero"))
-    bc.AddBlockChain([]byte("segundo"))
+    ac1 := Account{
+        Id: 1,
+        Name: "ali",
+    }
+    ac2 := Account{
+        Id: 2,
+        Name: "bob",
+    }
+    t1 := Transaction{
+        From: ac1,
+        To: ac2,
+        Amount: 10,
+    }
+
+    t2 := Transaction{
+        From: ac2,
+        To: ac1,
+        Amount: 22,
+    }
+    t3 := Transaction{
+        From: ac1,
+        To: ac2,
+        Amount: 33,
+    }
+
+    t4 := Transaction{
+        From: ac2,
+        To: ac1,
+        Amount: 44,
+    }
+    ts1 := []Transaction{t1,t2}
+    ts2 := []Transaction{t3,t4}
+    bc.AddBlockToChain(ts1)
+    bc.AddBlockToChain(ts2)
     bc.DebugBlockChain()
     if bc.ValidateBlockChain() {
         fmt.Println("[+]Blockchain correcta")
