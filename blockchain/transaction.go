@@ -1,7 +1,7 @@
 package blockchain
 
 type Transaction struct {
-	From   Account  `json:"from"`
-	To     Account  `json:"to"`
+	From   uint32   `json:"from"`
+	To     uint32   `json:"to"`
 	Amount float32  `json:"amount"`
 }

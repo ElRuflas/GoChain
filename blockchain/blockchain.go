@@ -40,7 +40,7 @@ func (bc *BlockChain) DebugBlockChain() {
 		fmt.Printf("Index Block: %d\n", v.Index)
 		for i, t := range v.Transactions {
 			fmt.Printf("Transaction[%d]: \n", i)
-			fmt.Printf("Amount: %f\tFrom %d\tTo %d\n", t.Amount, t.From.Id, t.To.Id)
+			fmt.Printf("Amount: %f\tFrom %d\tTo %d\n",t.Amount, t.From, t.To)
 		}
 		fmt.Printf("Hash: %x\n", v.Hash)
 		fmt.Printf("PrevHash: %x\n", v.PrevHash)
