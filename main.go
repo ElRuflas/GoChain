@@ -15,6 +15,13 @@ type Block struct{
     Nonce uint64 `json:"nonce"`
 }
 
+type BlockForHash struct {
+    Index    int    `json:"index"`
+    Data     []byte `json:"data"`
+    PrevHash []byte `json:"prevHash"`
+    Nonce    uint64 `json:"nonce"`
+}
+
 type BlockChain struct{
     Chain []Block
     Difficulty int
@@ -42,7 +49,13 @@ func InitBlockChain() *BlockChain{
 
 
 func (b *Block)CalculateHash() error {
-    data, err := json.Marshal(b) 
+    hb := &BlockForHash{
+        Index: b.Index,
+        Data: b.Data,
+        PrevHash: b.PrevHash,
+        Nonce: b.Nonce,
+    }
+    data, err := json.Marshal(hb) 
     if err != nil {
         return err
     }
@@ -63,9 +76,8 @@ func (b *Block)MineBlock(difficulty int){
 }
 
 func CheckHash(hash []byte,difficulty int) bool {
-    hexHash := fmt.Sprintf("%x", hash)
     for i:=0;i<difficulty;i++{
-        if hexHash[i]!= '0'{
+        if hash[i]!= 0x00{
             return false
         }
     }
@@ -100,7 +112,7 @@ func (bc *BlockChain)DebugBlockChain(){
 
 func (bc *BlockChain)ValidateBlockChain() bool{
     for i :=range bc.Chain{
-        if !CheckHash(bc.Chain[i].Hash,bc.Difficulty) || i!=0 && !bytes.Equal(bc.Chain[i].PrevHash,bc.Chain[i-1].Hash){
+        if  i!=0 && (!CheckHash(bc.Chain[i].Hash,bc.Difficulty) ||!bytes.Equal(bc.Chain[i].PrevHash,bc.Chain[i-1].Hash)){
             return false 
         }
     }
@@ -110,7 +122,7 @@ func (bc *BlockChain)ValidateBlockChain() bool{
 func main(){
     var bc *BlockChain = InitBlockChain() 
     bc.AddBlockChain([]byte("Primero"))
-    //bc.AddBlockChain([]byte("segundo"))
+    bc.AddBlockChain([]byte("segundo"))
     bc.DebugBlockChain()
     if bc.ValidateBlockChain() {
         fmt.Println("[+]Blockchain correcta")
